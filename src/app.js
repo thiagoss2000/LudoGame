@@ -1,7 +1,20 @@
 
 const sizeBoton = 6.2
 
-const calcPosition = (size, position) => {
+const positionMapFinish = (size, position, color) =>{
+    const valueFinish = { 
+        green: {level: [0, 0, 0, 0, 0, 0], up: [6, 5, 4, 3, 2, 1]},
+        red: {level: [6, 5, 4, 3, 2, 1], up: [0, 0, 0, 0, 0, 0]}, 
+        blue: {level: [0, 0, 0, 0, 0, 0], up: [-6, -5, -4, -3, -2, -1]},
+        yelow: {level: [-6, -5, -4, -3, -2, -1], up: [0, 0, 0, 0, 0, 0]}, 
+    }
+    return [
+        size/2 + (valueFinish[color]["up"][position] * size),
+        size/2 + (valueFinish[color]["level"][position] * size)
+    ]
+}
+
+const positionMap = (size, position) => {
     const level = [-2, -3, -4, -5, -6, -7, -7, -7, -6, -5, -4, -3, -2]
     const up = [1, 1, 1, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1]
 
@@ -28,28 +41,46 @@ const calcPosition = (size, position) => {
     }
 }
 
-let time = 0
+let timer = 0
+const colorsBotons = ["green", "red", "blue", "yelow"]
+let colorInd = 0
 setInterval(() => {
 
-    if(time > 51)
-        time = 0
-    const valuePosition = calcPosition(sizeBoton, time);
-    document.documentElement.style.setProperty('--valueLevelGreen', `${valuePosition[0]}%`)
-    document.documentElement.style.setProperty('--valueUpGreen', `${valuePosition[1]}%`)
-    
-    time++
-}, 100);
+    if(timer > 56){
+        timer = 0
+        colorInd++
+    }
+    if(colorInd > 3)
+        colorInd = 0
+
+    const valuePosition = timer <= 50 ? positionMap(sizeBoton, calcValueColor(timer, colorsBotons[colorInd]), colorsBotons[colorInd]) : positionMapFinish(sizeBoton, timer-51, colorsBotons[colorInd]);
+    document.documentElement.style.setProperty(`--valueLevel_${colorsBotons[colorInd]}`, `${valuePosition[0]}%`)
+    document.documentElement.style.setProperty(`--valueUp_${colorsBotons[colorInd]}`, `${valuePosition[1]}%`)
+        
+    timer++
+}, 200)
+
+const calcValueColor = (valuePosition, colorBoton) => {
+    const displacement = { green: 8, red: 21, blue: 34, yelow: 47 }
+    const calcPosition = displacement[colorBoton] + valuePosition
+    return calcPosition <= 51 ? calcPosition : calcPosition - 52
+    // 0 ~ 49 + 6
+    // green > (0+8) <= 51 0+8 : 51-0+8  
+}
 
 
 // const valuePosition = calcPosition(sizeBoton, 1);
-document.documentElement.style.setProperty('--valueLevelRed', `${-25.2}%`)
-document.documentElement.style.setProperty('--valueUpRed', `${31.3 + sizeBoton}%`)
+document.documentElement.style.setProperty('--valueLevel_green', `${31.3}%`)
+document.documentElement.style.setProperty('--valueUp_green', `${31.3 + sizeBoton}%`)
 
-document.documentElement.style.setProperty('--valueLevelYelow', `${31.3}%`)
-document.documentElement.style.setProperty('--valueUpYelow', `${-25.2 + sizeBoton}%`)
+document.documentElement.style.setProperty('--valueLevel_red', `${-25.2}%`)
+document.documentElement.style.setProperty('--valueUp_red', `${31.3 + sizeBoton}%`)
 
-document.documentElement.style.setProperty('--valueLevelBlue', `${-25.2}%`)
-document.documentElement.style.setProperty('--valueUpBlue', `${-25.2 + sizeBoton}%`)
+document.documentElement.style.setProperty('--valueLevel_yelow', `${31.3}%`)
+document.documentElement.style.setProperty('--valueUp_yelow', `${-25.2 + sizeBoton}%`)
+
+document.documentElement.style.setProperty('--valueLevel_blue', `${-25.2}%`)
+document.documentElement.style.setProperty('--valueUp_blue', `${-25.2 + sizeBoton}%`)
 
 document.getElementById("map").innerHTML = `
     <div id="boton" class="botonGreen"></div>
