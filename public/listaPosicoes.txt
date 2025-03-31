@@ -1,0 +1,26 @@
+center green
+    left: 18.8%;
+    top: 18.8%;
+center red
+    right: 18.8%;
+    top: 18.8%;
+center yelow
+    left: 18.8%;
+    bottom: 18.8%;
+center blue
+    right: 18.8%;
+    bottom: 18.8%;
+
+variação 6.2%
+
+  /* top: calc(50% - 3.1% - 37.2%);
+    right: calc(50% - 3.1% - 6.2%); */
+
+    /* right: calc(50% - 3.1% - 37.2%);
+    bottom: calc(50% - 3.1% - 6.2%); */
+
+    /* bottom: calc(50% - 3.1% - 37.2%);
+    left: calc(50% - 3.1% - 6.2%); */
+
+    /* bottom: 0%; */
+    /* top: calc(18.8% - 6.2%); */

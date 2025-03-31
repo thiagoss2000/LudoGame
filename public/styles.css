@@ -1,0 +1,101 @@
+* { 
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    background-color: aqua;
+    display: flex;
+    align-items: center;  
+    justify-content: center;  
+}
+
+img {
+    width: 800px;
+}
+
+#board {
+    width: 800px;
+    height: 800px;
+    position: relative;
+    display: flex;
+    align-items: center;  
+    justify-content: center; 
+    background-color: white;
+}
+
+#map {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    /* background-color: rgba(137, 43, 226, 0.527); */
+    padding: 6%;
+}
+
+#boton {
+    width: 6.2%;
+    height: 6.2%;
+    position: absolute;
+    border-radius: 50%; 
+    border: solid rgba(245, 245, 245, 0.822);
+    border-width: 5px;
+    box-sizing: border-box;
+}
+
+.botonGreen {
+    left: calc(50% - var(--valueLevelGreen));
+    top: calc(50% - var(--valueUpGreen));
+    
+    background-color: rgb(3, 196, 3);
+}
+
+.botonRed {
+    left: calc(50% - var(--valueLevelRed));
+    top: calc(50% - var(--valueUpRed));
+    
+    background-color: red;
+}
+
+.botonBlue {
+    left: calc(50% - var(--valueLevelBlue));
+    top: calc(50% - var(--valueUpBlue));
+    
+    background-color: rgb(98, 43, 226);
+}
+
+.botonYelow {
+    left: calc(50% - var(--valueLevelYelow));
+    top: calc(50% - var(--valueUpYelow));
+    
+    background-color: goldenrod;
+}
+
+#sort {
+    width: 50px;
+    height: 50px;
+    border: solid gray;
+    border-radius: 20%;
+
+    background-color: antiquewhite;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    
+    transform: rotate(0deg);
+}
+
+.line {
+    display: flex;
+    justify-content: space-around;
+}
+
+.number {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: black;
+}
