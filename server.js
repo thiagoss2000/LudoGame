@@ -1,10 +1,16 @@
-import express, { json } from "express";
-import cors from 'cors';
+import express from 'express';
+import path from 'path';
 
-const app = express()
+const app = express();
+const PORT = 8000;
 
-app.use(express.static(__dirname + '/public'))
-app.use(cors())
+// Servir arquivos estáticos da pasta 'public'
+app.use(express.static(path.join(process.cwd(), 'public')));
+
+// Rota para o index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+});
 
 app.listen(8000, () => {
     console.log("server on");
