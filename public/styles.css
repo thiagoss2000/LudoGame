@@ -50,7 +50,7 @@ img {
     border: solid 2px rgba(0, 0, 0, 0.808) !important;
 }
 
-.botonGreen {
+.boton_green {
     left: calc(50% - var(--valueLevel_green));
     top: calc(50% - var(--valueUp_green));
     
@@ -58,21 +58,21 @@ img {
 }
 
 
-.botonRed {
+.boton_red {
     left: calc(50% - var(--valueLevel_red));
     top: calc(50% - var(--valueUp_red));
     
     background-color: red;
 }
 
-.botonBlue {
+.boton_blue {
     left: calc(50% - var(--valueLevel_blue));
     top: calc(50% - var(--valueUp_blue));
     
     background-color: rgb(98, 43, 226);
 }
 
-.botonYelow {
+.boton_yelow {
     left: calc(50% - var(--valueLevel_yelow));
     top: calc(50% - var(--valueUp_yelow));
     
@@ -105,8 +105,9 @@ img {
 
     /* transform: rotate(0deg); */
 }
-#draw:hover {
-    border: solid gold;
+
+.clickable:hover {
+    border: solid gold !important;
     cursor: pointer;
 }
 

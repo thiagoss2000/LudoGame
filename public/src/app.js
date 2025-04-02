@@ -3,7 +3,7 @@ const sizeBoton = 6.2
 
 // calcula posicaonno eixo y e x na trilha de chegada com base no numero da casa, tamanho do botao e trilha de cor correspondente
 const positionMapFinish = (size, position, color) =>{
-    const valueFinish = { 
+    const valueFinish = {   //multiplicadores de deslocamento nos eixos x e y para cada botao com base no numero da casa de chegada
         green: {level: [0, 0, 0, 0, 0, 0], up: [6, 5, 4, 3, 2, 1]},
         red: {level: [6, 5, 4, 3, 2, 1], up: [0, 0, 0, 0, 0, 0]}, 
         blue: {level: [0, 0, 0, 0, 0, 0], up: [-6, -5, -4, -3, -2, -1]},
@@ -16,7 +16,7 @@ const positionMapFinish = (size, position, color) =>{
 }
 
 // calcula posicao no eixo y e x com base no numero da casa do tabulerio e tamanho do botao
-const positionMap = (size, position) => {
+const positionMap = (size, position) => {   //multiplicadores de deslocamento nos eixos x e y para cada botao com base no numero da casa do tabuleiro
     const level = [-2, -3, -4, -5, -6, -7, -7, -7, -6, -5, -4, -3, -2]
     const up = [1, 1, 1, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1]
 
@@ -52,21 +52,13 @@ const calcValueColor = (valuePosition, colorBoton) => {
     // green > (0+8) <= 51 0+8 : 51-0+8  
 }
 
-const selectIten = (element, clasname = "select") => {
-    document.querySelectorAll("div").forEach(elemento => {
-        elemento.classList.remove(clasname);
-    });
-    element.classList.toggle(clasname)
-    console.log("ID:", element.dataset.idb);
-}
-
+//  cria elementos html correspondentes a lista de cores de botoes recebida
 const initBotons = (listColors) => {
-    const classColors = {green: ["botonGreen", "G"], red: ["botonRed", "R"], blue: ["botonBlue", "B"], yelow: ["botonYelow", "Y"]}
     const idbBotons = [1, 2, 3, 4]
 
     const listBotons = listColors.map(color => {
         return idbBotons.reduce((acc, id) => acc +
-        `<div id="boton" class="${classColors[color][0]}" data-idb="${classColors[color][1]+id}"></div>`,""
+        `<div id="boton" class="boton_${color}" data-idb="${color[0] + id}"></div>`,""
         )
     })
 
@@ -75,38 +67,43 @@ const initBotons = (listColors) => {
     return includeBotons
 } 
 
-
-const activeBotons = () => {
-    // Agora adiciona o evento de clique a cada botão
-    document.querySelectorAll("#boton").forEach(boton => {
-        boton.addEventListener("click", function() {
-            selectIten(this);
-        });
+const selectIten = (element, clasname = "select") => {
+    document.querySelectorAll("div").forEach(elemento => {
+        elemento.classList.remove(clasname);
     });
+    element.classList.toggle(clasname)
+    console.log("ID:", element.dataset.idb);
 }
 
-const setInitialPositions = (color, size) => {
-    const classColors = {green: ["G", 31.3, 31.3], red: ["R", -25.2, 31.3], blue: ["B", -25.2, -25.2], yelow: ["Y", 31.3, -25.2]}
-    const initialPosition = {up: [-1, 0, 0, 1], level: [0, -1, 1, 0]}
-    const idbBotons = [1, 2, 3, 4]
-
-    idbBotons.forEach((id, ind) => {
-        document.querySelector(`[data-idb="${classColors[color][0]+id}"]`).style.left = `${50 - classColors[color][1] + initialPosition.level[ind] * size}%`
-        document.querySelector(`[data-idb="${classColors[color][0]+id}"]`).style.top = `${50 - classColors[color][2] + initialPosition.up[ind] * size}%`
+const activeBotons = (color) => {
+    // Agora adiciona o evento de clique a cada botão
+    document.querySelectorAll(`.boton_${color}`).forEach(elemento => {
+        elemento.addEventListener("click", (event) => selectIten(event.currentTarget))
+        elemento.classList.add("clickable")
     })
 }
 
-document.getElementById("map").innerHTML = initBotons(["green","red"])
-setInitialPositions("green", sizeBoton)
-setInitialPositions("red", sizeBoton)
+const setInitialPositions = (listColors, size) => {
+    const classColors = {green: [31.3, 31.3], red: [-25.2, 31.3], blue: [-25.2, -25.2], yelow: [31.3, -25.2]}   //posicao central inicial para cada cor
+    const initialPosition = {up: [-1, 0, 0, 1], level: [0, -1, 1, 0]}   //multiplicadores de deslocamento nos eixos x e y para cada botao
+    const idbBotons = [1, 2, 3, 4]  //identificador numerico de cada botao
 
-export { initBotons, setInitialPositions, sizeBoton } 
-
-
-
+    listColors.forEach(color => {
+        idbBotons.forEach((id, ind) => {
+            document.querySelector(`[data-idb="${color[0] + id}"]`).style.left = `${50 - classColors[color][0] + initialPosition.level[ind] * size}%`
+            document.querySelector(`[data-idb="${color[0] + id}"]`).style.top = `${50 - classColors[color][1] + initialPosition.up[ind] * size}%`
+        })
+    })
+}
 
 
 const colorsBotons = ["green", "red", "blue", "yelow"]
+
+document.getElementById("map").innerHTML = initBotons(colorsBotons)
+setInitialPositions(colorsBotons, sizeBoton)
+activeBotons("green")
+export { initBotons, setInitialPositions, sizeBoton } 
+
 
 let timer = 0
 let colorInd = 0
