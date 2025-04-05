@@ -1,8 +1,8 @@
-import { initBotons, setInitialPositions, sizeBoton } from "./app.js"
+import { checkButtonRelease, checkCurrentPlayer, newListPlayers, nextCurrentPlayer, setCurrentPlayer } from "./players.js";
 
 // retorna numero de 0 a 6
 const randomDraw = (max) => {
-    return Math.floor(Math.random() * max);
+    return Math.floor(Math.random() * max) + 1;
 }
 
 const initDrawer = (fn) => {
@@ -24,6 +24,7 @@ const initDrawer = (fn) => {
 }
 
 const drawNumbers = (number) => {
+    document.getElementById("draw").setAttribute("data-number", `${number}`)
     switch(number){
         case 1: // case 1 persiste numero 1
             document.getElementById("drawNumber3").remove();
@@ -48,15 +49,22 @@ const drawNumbers = (number) => {
         case 5: // case 5 persiste numero 5
             document.getElementById("drawNumber3").remove();
             break;
-        default:    // default persiste numero 6 para valores diferentes de 1 a 5 aumentando as chances de sair 6 para 28% 
+        default:    // default persiste numero 6 
             break;
     }
 }
 
-document.getElementById("draw").onclick = () => { 
-    initDrawer(drawNumbers)(randomDraw(6)) 
+document.getElementById("draw").onclick = (element) => { 
+  
+    if(!element.currentTarget.classList.contains("clickable")) return 0
 
-    document.getElementById("map").innerHTML = initBotons(["blue", "yelow"])
-    setInitialPositions("blue", sizeBoton)
-    setInitialPositions("yelow", sizeBoton)
+    if(!checkCurrentPlayer()) {
+        const newCurrentPlayer = randomDraw(newListPlayers().length)
+        initDrawer(drawNumbers)(newCurrentPlayer)
+        setCurrentPlayer(newCurrentPlayer - 1, newListPlayers())
+    }else{
+        const randomNumber = randomDraw(6)
+        initDrawer(drawNumbers)(randomNumber) 
+        checkButtonRelease(randomNumber)
+    }
 }

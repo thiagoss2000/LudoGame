@@ -12,7 +12,7 @@ body {
     justify-content: center;  
 }
 
-img {
+#background_img {
     width: 800px;
 }
 
@@ -32,11 +32,10 @@ img {
     position: absolute;
     left: 0;
     top: 0;
-    /* background-color: rgba(137, 43, 226, 0.527); */
     padding: 6%;
 }
 
-#boton {
+.button {
     width: 6.2%;
     height: 6.2%;
     position: absolute;
@@ -44,13 +43,14 @@ img {
     border: solid rgba(245, 245, 245, 0.822);
     border-width: 5px;
     box-sizing: border-box;
+    z-index: 0;
 }
 
 .select {
     border: solid 2px rgba(0, 0, 0, 0.808) !important;
 }
 
-.boton_green {
+.button_green {
     left: calc(50% - var(--valueLevel_green));
     top: calc(50% - var(--valueUp_green));
     
@@ -58,21 +58,21 @@ img {
 }
 
 
-.boton_red {
+.button_red {
     left: calc(50% - var(--valueLevel_red));
     top: calc(50% - var(--valueUp_red));
     
     background-color: red;
 }
 
-.boton_blue {
+.button_blue {
     left: calc(50% - var(--valueLevel_blue));
     top: calc(50% - var(--valueUp_blue));
     
     background-color: rgb(98, 43, 226);
 }
 
-.boton_yelow {
+.button_yelow {
     left: calc(50% - var(--valueLevel_yelow));
     top: calc(50% - var(--valueUp_yelow));
     
@@ -85,8 +85,10 @@ img {
     border-left: solid 1px grey;
 
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 20px;
 
     background-color: ghostwhite;
 }
@@ -106,8 +108,11 @@ img {
     /* transform: rotate(0deg); */
 }
 
+.clickable {
+    border: solid gold;
+}
 .clickable:hover {
-    border: solid gold !important;
+    border: solid silver !important;
     cursor: pointer;
 }
 
@@ -122,4 +127,46 @@ img {
     height: 10px;
     border-radius: 50%;
     background-color: black;
+}
+
+#players {
+    width: 120px;
+    height: 120px;
+    border: solid gray;
+    border-radius: 10%;
+
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 colunas */
+    grid-template-rows: repeat(2, 1fr);    /* 2 linhas */
+    place-items: center; 
+    gap: 10px;
+}
+
+.player_inactive {
+    background-color: rgba(128, 128, 128, 0.788) !important;
+}
+.current_player {
+    border: solid gold !important;
+}
+
+.player_button {
+    width: 40px;
+    height: 40px;
+    border: solid gray;
+    border-radius: 50%;    
+}
+
+#startButton {
+    width: 120px;
+    height: 30px;
+    border: solid gray;
+    border-radius: 20%;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.indexTop {
+    z-index: 10 !important;
 }

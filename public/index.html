@@ -9,13 +9,16 @@
 </head>
 <body>
     <div id="board">
-        <img src="./assets/ludo_board.png" alt="não foi possível carregar a imagem">
+        <img id="background_img" src="./assets/ludo_board.png" alt="não foi possível carregar a imagem">
         <div id="map"></div>
     </div>
     <div id="navbar">
+        <div id="players"></div>
+        <div id="startButton" class="clickable"><p>Play</p></div>
         <div id="draw"><p>TS</p></div>
     </div>
     <script type="module" src="./src/app.js"></script>
     <script type="module" src="./src/draw.js"></script>
+    <script type="module" src="./src/players.js"></script>
 </body>
 </html>
