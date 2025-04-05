@@ -25,6 +25,8 @@ npm start
 O servidor iniciará por padrão na porta 8000
 Acesse http://localhost:8000/ para jogar
 
+* para uso de outra porta alterar PORT em server.js
+
 ### 📋 Pré-requisitos
 
 📥 Instalação do Node.js

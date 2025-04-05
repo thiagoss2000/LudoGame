@@ -1,121 +1,171 @@
-
 const sizeButton = 6.2
 
-// calcula posicaonno eixo y e x na trilha de chegada com base no numero da casa, tamanho do botao e trilha de cor correspondente
-const positionMapFinish = (size, position, color) => {
-    const valueFinish = {   //multiplicadores de deslocamento nos eixos x e y para cada botao com base no numero da casa de chegada
-        green: {level: [0, 0, 0, 0, 0, 0], up: [6, 5, 4, 3, 2, 1]},
-        red: {level: [6, 5, 4, 3, 2, 1], up: [0, 0, 0, 0, 0, 0]}, 
-        blue: {level: [0, 0, 0, 0, 0, 0], up: [-6, -5, -4, -3, -2, -1]},
-        yelow: {level: [-6, -5, -4, -3, -2, -1], up: [0, 0, 0, 0, 0, 0]}, 
-    }
-    return [    // retorna array com as distancias [top, left]
-        size/2 + (valueFinish[color]["up"][position] * size),
-        size/2 + (valueFinish[color]["level"][position] * size)
-    ]
+// --------------------
+// FUNÇÕES PURAS
+// --------------------
+
+// Mapeia os deslocamentos das casas finais por cor
+// Estrutura constante e pura, sem mutações
+const valueFinish = {
+    green: { level: [0, 0, 0, 0, 0, 0], up: [6, 5, 4, 3, 2, 1] },
+    red: { level: [6, 5, 4, 3, 2, 1], up: [0, 0, 0, 0, 0, 0] },
+    blue: { level: [0, 0, 0, 0, 0, 0], up: [-6, -5, -4, -3, -2, -1] },
+    yelow: { level: [-6, -5, -4, -3, -2, -1], up: [0, 0, 0, 0, 0, 0] },
 }
 
-// calcula posicao no eixo y e x com base no numero da casa do tabulerio e tamanho do botao
-const positionMap = (size, position) => {   //multiplicadores de deslocamento nos eixos x e y para cada botao com base no numero da casa do tabuleiro
-    const level = [-2, -3, -4, -5, -6, -7, -7, -7, -6, -5, -4, -3, -2]
-    const up = [1, 1, 1, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1]
+// Vetores que descrevem o caminho principal do tabuleiro
+const level = [-2, -3, -4, -5, -6, -7, -7, -7, -6, -5, -4, -3, -2]
+const up = [1, 1, 1, 1, 1, 1, 0, -1, -1, -1, -1, -1, -1]
 
-    if(position <= 12){  // primeiro quadrante, caminho verde
-        return [
-            size/2 + (level[position] * -size),
-            size/2 + (up[position] * -size)
-        ]
-    }else if(position <= 25){  // segundo quadrante, caminho vermelho, rotacao 90 graus
-        return [
-            size/2 + (up[12 - (position - 13)] * -size),
-            size/2 + (level[position - 13] * -size)
-        ]
-    }else if(position <= 38){  // terceiro quadrante, caminho azul, rotacao 180 graus
-        return [
-            size/2 + (level[position - 26] * size),
-            size/2 + (up[position - 26] * size)
-        ]
-    }else{  // quarto quadrante, caminho amarelo, rotacao 270 graus
-        return [
-            size/2 + (up[12 - (position - 39)] * size),
-            size/2 + (level[position - 39] * size)
-        ]
-    }   // retorna array com as distancias [top, left]
+// Deslocamento do ponto inicial de cada cor
+const displacement = { green: 8, red: 21, blue: 34, yelow: 47 }
+
+// Deslocamento relativo para distribuir as 4 peças em cada canto
+const initialOffset = {
+    up: [-1, 0, 0, 1],
+    level: [0, -1, 1, 0],
 }
 
-// calcula casa correspondente a posicao 0 a 50 para cada cor
-const calcValueColor = (valuePosition, colorButton) => {
-    const displacement = { green: 8, red: 21, blue: 34, yelow: 47 }
-    const calcPosition = displacement[colorButton] + valuePosition
-    // retorna a casa correspondente no tabuleiro
-    return calcPosition <= 51 ? calcPosition : calcPosition - 52
-    // 0 ~ 49 + 6   ex green > (0+8) <= 51 ? 0+8 : 0+8-52 
+// Coordenadas centrais para posicionamento inicial das peças por cor
+const classColors = {
+    green: [31.3, 31.3],
+    red: [31.3, -25.2],
+    blue: [-25.2, -25.2],
+    yelow: [-25.2, 31.3],
 }
 
-//  cria elementos html correspondentes aos botoes da lista de cores de botoes recebida
-const createButtons = (listColors) => {
-    const idButtons = [1, 2, 3, 4]
-    const listButtons = listColors.map(color => {
-        return idButtons.reduce((acc, id) => acc +     //revise    ********
-        `<div id="${color[0] + id}" class="button button_${color}" data-color="${color}" data-position="0" data-casemap="-1"></div>`,""
-        )
+// Converte a posição local da peça para o valor global no tabuleiro
+// Ex: a peça vermelha 0 será casa 21, vermelha 1 será 22 etc.
+const calcValueColor = (valuePosition, color) => {
+    const calc = displacement[color] + valuePosition
+    return calc <= 51 ? calc : calc - 52
+}
+
+// Retorna as coordenadas de uma posição do tabuleiro principal
+// Mapeia a posição numérica (0 a 51) para coordenadas percentuais
+const positionMap = (size, position) => {
+    if (position <= 12)
+        return [size / 2 - level[position] * size, size / 2 - up[position] * size]
+    if (position <= 25)
+        return [size / 2 - up[12 - (position - 13)] * size, size / 2 - level[position - 13] * size]
+    if (position <= 38)
+        return [size / 2 + level[position - 26] * size, size / 2 + up[position - 26] * size]
+    return [size / 2 + up[12 - (position - 39)] * size, size / 2 + level[position - 39] * size]
+}
+
+// Retorna as coordenadas da trilha final de uma determinada cor
+const positionMapFinish = (size, position, color) => [
+    size / 2 + valueFinish[color].up[position] * size,
+    size / 2 + valueFinish[color].level[position] * size,
+]
+
+// Retorna as coordenadas visuais para uma peça, seja na trilha principal ou final
+// Retorna também o valor global da casa (para comparações)
+const calcPieceCoords = (position, color, size) => {
+    const isMain = position <= 50
+    const pos = isMain ? calcValueColor(position, color) : position - 51
+    const [top, left] = isMain
+        ? positionMap(size, pos)
+        : positionMapFinish(size, pos, color)
+    return [top, left, pos]
+}
+
+// Calcula a posição inicial de uma peça no canto da sua base
+const getInitialCoords = (color, id, size) => {
+    const [baseX, baseY] = classColors[color]
+    const dx = initialOffset.level[id - 1] * size
+    const dy = initialOffset.up[id - 1] * size
+    return [baseX + dx, baseY + dy]
+}
+
+// Gera o HTML de todas as peças dos jogadores com base nas cores fornecidas
+// Função pura — apenas retorna string
+const createButtons = (colors) =>
+    colors.map(color =>
+        [1, 2, 3, 4].map(id =>
+            `<div id="${color[0] + id}" class="button button_${color}" data-color="${color}" data-position="0" data-casemap="-1"></div>`
+        ).join("")
+    ).join("")
+
+// --------------------
+// EFEITOS COLATERAIS (DOM)
+// --------------------
+
+// Aplica as coordenadas visuais (top e left) em um botão
+const domSetStylePosition = (el, top, left) => {
+    el.style.left = `${50 - top}%`
+    el.style.top = `${50 - left}%`
+}
+
+// Define o atributo de casa atual no tabuleiro
+const domSetCaseMap = (el, value) => el.setAttribute("data-caseMap", `${value}`)
+
+// Inicializa eventos de clique nos botões
+const domInitButtons = (selector, handler) =>
+    document.querySelectorAll(selector).forEach(el => el.addEventListener("click", handler))
+
+// Adiciona ou remove a classe `clickable` para ativar/desativar peças
+const domModifyButtons = (selector, action) =>
+    document.querySelectorAll(selector).forEach(el => el.classList[action]("clickable"))
+
+const activeButtons = (selector) => domModifyButtons(selector, "add")
+const inactiveButtons = (selector) => domModifyButtons(selector, "remove")
+
+// Posiciona visualmente uma peça no tabuleiro com base na posição e cor
+const domSetPiecePosition = (position, id, color) => {
+    const [top, left, pos] = calcPieceCoords(position, color, sizeButton)
+    const button = document.querySelector(`#${id}`)
+    domSetStylePosition(button, top, left)
+    domSetCaseMap(button, pos)
+}
+
+// Posiciona visualmente as peças nas bases iniciais de cada jogador
+const domPlaceInitialPieces = (colors, size, ids = [1, 2, 3, 4]) => {
+    colors.forEach(color => {
+        ids.forEach(id => {
+            const [x, y] = getInitialCoords(color, id, size)
+            const button = document.querySelector(`#${color[0] + id}`)
+            domSetStylePosition(button, y, x)
+        })
     })
-    const includeButtons = listButtons.reduce((acc, groupButtons) => acc + groupButtons,"")
-    return includeButtons   // retorna string correspondente aos elementos
-} 
-
-const initButtons = (identifier, fn) => {
-    // Adiciona o evento de clique a ao elemento referido ligando a funcao recebida
-    document.querySelectorAll(identifier).forEach(elemento => {
-            elemento.addEventListener("click", fn)
-    })
 }
 
-const activeButtons = (identifier) => {   // modificar *********
-    document.querySelectorAll(identifier).forEach(elemento => elemento.classList.add("clickable"))
-}
-
-const inactiveButtons = (identifier) => {
-    document.querySelectorAll(identifier).forEach(elemento => elemento.classList.remove("clickable"))
-}
-
-const setPosition = (position, id, color) => {
-    const valuePosition = position <= 50 ? positionMap(sizeButton, calcValueColor(position, color), color) : positionMapFinish(sizeButton, position-51, color);
-    document.querySelector(`#${id}`).style.left = `${50 - valuePosition[0]}%`
-    document.querySelector(`#${id}`).style.top = `${50 - valuePosition[1]}%`
-    // registra posicao padrao nas casas do tabuleiro
-    document.querySelector(`#${id}`).setAttribute("data-caseMap", `${calcValueColor(position, color)}`)
-}
-
-const returnOpponent = (player, position) => {
-    const opponents = ["green", "red", "blue", "yelow"].filter(element => element != player)
+// Verifica se existe um oponente na mesma casa e o retorna à base
+const domReturnOpponent = (player, position) => {
+    const opponents = ["green", "red", "blue", "yelow"].filter(p => p !== player)
     const caseMap = calcValueColor(position, player)
-    const protectedCase = [8, 21, 34, 47]
-    //   casas iniciais sao protegidas, nao causa retorno do botao
-    if(protectedCase.includes(caseMap)) return 0
+    const protectedCase = [8, 21, 34, 47]   // Casas de partida são protegidas, não há retorno de oponentes
 
-    opponents.forEach(opponentColor => {
-        document.querySelectorAll(`.button[data-color="${opponentColor}"]`).forEach(element => {
-            const boardPosition = parseInt(element.dataset.casemap)
-            const idOpponent = parseInt(element.id[1])
-            if(boardPosition > 1 && caseMap == boardPosition) {    // retorna botao para posicao inicial
-                element.dataset.position = "0"
-                setInitialPositions([opponentColor], sizeButton, [idOpponent])
+    if (protectedCase.includes(caseMap)) return
+
+    opponents.forEach(color => {
+        document.querySelectorAll(`.button[data-color="${color}"]`).forEach(button => {
+            const opponentPosition = parseInt(button.dataset.position)
+            const opponentCaseMap = parseInt(button.dataset.casemap)
+
+            if (
+                opponentPosition <= 50 &&
+                opponentCaseMap === caseMap &&
+                opponentPosition > 1
+            ) {
+                button.dataset.position = "0"
+                domPlaceInitialPieces([color], sizeButton, [parseInt(button.id[1])])
             }
         })
     })
 }
 
-const setInitialPositions = (listColors, size, listId = [1, 2, 3, 4]) => {
-    const classColors = {green: [31.3, 31.3], red: [-25.2, 31.3], blue: [-25.2, -25.2], yelow: [31.3, -25.2]}   //posicao central inicial para cada cor
-    const initialPosition = {up: [-1, 0, 0, 1], level: [0, -1, 1, 0]}   //multiplicadores de deslocamento nos eixos x e y para cada botao
+// --------------------
+// EXPORTS
+// --------------------
 
-    listColors.forEach(color => {
-        listId.forEach((id) => {
-            document.querySelector(`#${color[0] + id}`).style.left = `${50 - classColors[color][0] + initialPosition.level[id-1] * size}%`
-            document.querySelector(`#${color[0] + id}`).style.top = `${50 - classColors[color][1] + initialPosition.up[id-1] * size}%`
-        })
-    })
+export {
+    createButtons,                        // pura
+    domInitButtons as initButtons,       // efeito colateral
+    domPlaceInitialPieces as setInitialPositions, // efeito colateral
+    activeButtons,                       // efeito colateral
+    inactiveButtons,                     // efeito colateral
+    domSetPiecePosition as setPosition,  // efeito colateral
+    domReturnOpponent as returnOpponent, // efeito colateral
+    sizeButton,
 }
-
-export { createButtons, initButtons, setInitialPositions, activeButtons, inactiveButtons, setPosition, returnOpponent, sizeButton } 

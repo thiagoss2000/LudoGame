@@ -1,118 +1,257 @@
-import { activeButtons, createButtons, inactiveButtons, initButtons, returnOpponent, setInitialPositions, setPosition, sizeButton } from "./app.js"
+import {
+    activeButtons, createButtons, inactiveButtons, initButtons,
+    returnOpponent, setInitialPositions, setPosition, sizeButton
+} from "./app.js"
 
-document.getElementById("players").innerHTML = `
-    <div id="player_green" class="player_button button_green clickable" data-color="green"></div>
-    <div id="player_red" class="player_button button_red clickable" data-color="red"></div>
-    <div id="player_yelow" class="player_button button_yelow clickable" data-color="yelow"></div>
-    <div id="player_blue" class="player_button button_blue clickable" data-color="blue"></div>
-`
+// --- Constantes de configuração do jogo ---
 
-//  marca o player como selecionado adicionando a classe de selecao
-function addPlayer(classActive, classSet) {
-    return (event) => { if (event.target.classList.contains(classActive)) event.target.classList.toggle(classSet) }
-}
+// Número máximo de casas no percurso completo (início + trilha + chegada)
+const PLAYER_LIMIT = 57
 
-//  retorna lista de players selecionados
-function newListPlayers(idPlayer = "player_button", classSet = "select") {
-    return [...document.querySelectorAll(`.${idPlayer}.${classSet}`)].map(element => element.dataset.color)
-}
+// Primeira posição que um peão pode assumir ao sair da base
+const START_POSITION = 1
 
-//  aplica classe player_inactive para os players nao selecionados
-function inactiveNSelectPlayers(identifier, players) {
-    document.querySelectorAll(identifier).forEach(element => {
-        if (!players.includes(element.dataset.color)) element.classList.add("player_inactive")
+// Posição de chegada final
+const FINAL_POSITION = 57
+
+// Última posição do tabuleiro antes de entrar na trilha final
+const MAX_BOARD_POSITION = 52
+
+// Ordem lógica de iteração dos jogadores
+const PLAYER_ORDER = ["green", "red", "blue", "yelow"]
+
+// Ordem visual de exibição dos jogadores no menu
+const PLAYER_DISPLAY_ORDER = ["green", "red", "yelow", "blue"]
+
+// --- Funções auxiliares de manipulação de DOM ---
+// Todas possuem efeito colateral
+
+// Define HTML interno de um seletor
+const setHTML = (selector, html) => document.querySelector(selector).innerHTML = html
+
+// Retorna o primeiro elemento que bate com o seletor
+const query = (selector) => document.querySelector(selector)
+
+// Retorna todos os elementos como array
+const queryAll = (selector) => [...document.querySelectorAll(selector)]
+
+// Verifica se um elemento possui uma classe
+const hasClass = (el, className) => el.classList.contains(className)
+
+// Alterna uma classe em um elemento
+const toggleClass = (el, className) => el.classList.toggle(className)
+
+// Adiciona uma classe a um elemento
+const addClass = (el, className) => el.classList.add(className)
+
+// Remove uma classe de um elemento
+const removeClass = (el, className) => el.classList.remove(className)
+
+// Define um atributo em um elemento
+const setAttr = (el, attr, val) => el.setAttribute(attr, val)
+
+// Remove um atributo de um elemento
+const removeAttr = (el, attr) => el.removeAttribute(attr)
+
+// --- Setup inicial de jogadores ---
+
+// Cria os botões visuais de cada jogador
+// Efeito colateral: altera o DOM
+const setupPlayers = () => setHTML("#players",
+    PLAYER_DISPLAY_ORDER
+        .map(color =>
+            `<div id="player_${color}" class="player_button button_${color} clickable" data-color="${color}"></div>`
+        )
+        .join("")
+)
+
+// Controla a seleção visual dos jogadores
+const addPlayer = (classActive, classSet) => ({ target }) =>
+    hasClass(target, classActive) && toggleClass(target, classSet)
+
+// Gera a lista de cores dos jogadores selecionados
+// Função pura
+const newListPlayers = (idPlayer = "player_button", classSet = "select") =>
+    PLAYER_ORDER.filter(color => {
+        const el = query(`.${idPlayer}[data-color="${color}"]`)
+        return el && el.classList.contains(classSet)
     })
+
+// Inativa visualmente jogadores não selecionados
+const inactiveNSelectPlayers = (identifier, players) =>
+    queryAll(identifier).forEach(el => {
+        if (!players.includes(el.dataset.color)) addClass(el, "player_inactive")
+    })
+
+// --- Lógica pura de movimentação e jogo ---
+
+// Calcula nova posição com base no dado
+const getNewPosition = (currentPosition, diceValue) =>
+    currentPosition === 0 ? START_POSITION
+    : (currentPosition + diceValue <= PLAYER_LIMIT ? currentPosition + diceValue : currentPosition)
+
+// Verifica se a posição final foi atingida
+const isFinalPosition = (position) => position === FINAL_POSITION
+
+// Determina se o turno deve trocar de jogador
+const shouldSwitchPlayer = (diceValue, buttons) => {
+    const allUnplayable = buttons.every(({ position }) =>
+        position === 0 || position >= FINAL_POSITION
+    )
+    return diceValue !== 6 || allUnplayable
 }
 
-function startGame(element) {
-    if(!element.currentTarget.classList.contains("clickable")) return 0
+// Verifica se a quantidade de jogadores é válida
+const isValidSelection = (players) => players.length >= 2
 
-    const colorsButtons = newListPlayers()
-    if(colorsButtons.length < 2) {
-        alert("selecione no mínimo 2 players!")
-        return 0
+// Retorna lista de botões que podem se mover com base no dado
+const getPlayableButtons = (buttons, dice) => {
+    const fromBase = buttons.filter(({ position }) => position === 0 && dice === 6)
+    const onBoard = buttons.filter(({ position }) => position > 0 && position + dice <= PLAYER_LIMIT)
+    return [...fromBase, ...onBoard]
+}
+
+// --- Controle do movimento das peças ---
+
+// Aplica movimentação da peça, atualiza DOM, verifica captura e final
+const handlePieceMove = ({ id, color, position }, diceValue, setPosEffect, removeAttrEffect, hitOpponentEffect) => {
+    const newPosition = getNewPosition(position, diceValue)
+    setPosEffect(id, color, newPosition)
+
+    // Verifica se pode capturar adversário
+    if (newPosition <= MAX_BOARD_POSITION) {
+        hitOpponentEffect(color, newPosition - 1)
     }
 
-    document.getElementById("map").innerHTML = createButtons(colorsButtons)
-    initButtons(".button", selectIten)
-    setInitialPositions(colorsButtons, sizeButton)
+    // Se atingiu o final, remove os atributos de controle
+    if (isFinalPosition(newPosition)) {
+        ["data-position", "data-casemap"].forEach(attr =>
+            removeAttrEffect(id, attr)
+        )
+    }
 
-    // // torna os botoes players nao clicaveis e inativa cores nao selecionadas
-    inactiveButtons(".player_button")
-    inactiveButtons("#startButton")
-    inactiveNSelectPlayers(".player_button", colorsButtons)
+    return newPosition
+}
+
+// Controla o clique do jogador em uma peça
+// Efeito colateral: movimenta peça e altera turnos
+const selectItem = ({ currentTarget }) => {
+    if (!hasClass(currentTarget, "clickable")) return
+
+    const dice = parseInt(query("#draw").dataset.number)
+    const id = currentTarget.id
+    const color = currentTarget.dataset.color
+    const position = parseInt(currentTarget.dataset.position)
+
+    const buttons = queryAll(`[data-color="${color}"]`).map(btn => ({
+        id: btn.id,
+        position: parseInt(btn.dataset.position)
+    }))
+
+    handlePieceMove(
+        { id, color, position },
+        dice,
+        (id, color, pos) => {
+            setAttr(query(`#${id}`), "data-position", `${pos}`)
+            setPosition(pos - 1, id, color)
+        },
+        (id, attr) => removeAttr(query(`#${id}`), attr),
+        returnOpponent
+    )
+
+    // Desativa todas as peças após o movimento
+    inactiveButtons(".button")
+
+    // Troca jogador caso necessário
+    if (shouldSwitchPlayer(dice, buttons)) {
+        nextCurrentPlayer(color)
+    }
+
+    // Reativa botão de rolar dado
     activeButtons("#draw")
 }
 
-// adiciona evento de click aos botoes referentes aos players na navbar
+// Inicia o jogo com jogadores selecionados
+// Efeito colateral: altera o DOM e estado inicial
+const startGame = ({ currentTarget }) => {
+    if (!hasClass(currentTarget, "clickable")) return
+
+    const colors = newListPlayers()
+    if (!isValidSelection(colors)) return alert("selecione no mínimo 2 players!")
+
+    setHTML("#map", createButtons(colors))
+    initButtons(".button", selectItem)
+    setInitialPositions(colors, sizeButton)
+    inactiveButtons(".player_button")
+    inactiveButtons("#startButton")
+    inactiveNSelectPlayers(".player_button", colors)
+    activeButtons("#draw")
+}
+
+// --- Controle de turnos ---
+
+// Retorna a cor do jogador da vez
+const checkCurrentPlayer = () => query(".current_player")?.dataset.color || null
+
+// Atualiza jogador da vez com base na ordem dos selecionados
+const nextCurrentPlayer = (current) => {
+    const players = newListPlayers()
+    const index = players.findIndex(p => p === current)
+    const next = (index + 1) % players.length
+    setCurrentPlayer(next, players)
+}
+
+// Define visualmente o jogador atual (estilo e z-index)
+const setCurrentPlayer = (index, players) => {
+    queryAll(".player_button").forEach(el => removeClass(el, "current_player"))
+    queryAll(".button").forEach(el => {
+        el.style.zIndex = 1
+    })
+
+    const current = players[index]
+    addClass(query(`.player_button[data-color="${current}"]`), "current_player")
+
+    const currentButtons = queryAll(`.button[data-color="${current}"]`)
+    currentButtons.forEach(el => {
+        el.style.zIndex = 2
+    })
+}
+
+// Verifica se o jogador atual tem peças que podem se mover
+const checkButtonRelease = (number) => {
+    const current = checkCurrentPlayer()
+    const rawButtons = queryAll(`[data-position][data-color="${current}"]`)
+
+    const buttons = rawButtons.map(el => ({
+        id: el.id,
+        position: parseInt(el.dataset.position),
+        el
+    }))
+
+    const playable = getPlayableButtons(buttons, number)
+
+    if (playable.length > 0) {
+        playable.forEach(({ id }) => activeButtons(`#${id}`))
+        inactiveButtons("#draw")
+    } else {
+        nextCurrentPlayer(current)
+        activeButtons("#draw")
+    }
+}
+
+// --- Inicialização do Jogo ---
+// Configura os botões de seleção de jogador e o botão de iniciar
+
+setupPlayers()
 initButtons(".player_button", addPlayer("clickable", "select"))
 initButtons("#startButton", startGame)
 
-const selectIten = (element) => {
-    const number = parseInt(document.querySelector("#draw").dataset.number)
+// --- Exportações para uso externo (geralmente em outro módulo) ---
 
-    const initialPosition = parseInt(element.currentTarget.dataset.position)
-    const id = element.currentTarget.id
-    const color = element.currentTarget.dataset.color
-    if(!element.currentTarget.classList.contains("clickable")) return 0
-    if(initialPosition == 0) {
-        element.currentTarget.dataset.position = "1"
-        setPosition(0, id, color)
-    }else{
-        const newPosition = (initialPosition + number) <= 57 ? (initialPosition + number) : initialPosition
-        element.currentTarget.dataset.position = `${newPosition}`
-        setPosition(newPosition - 1, id, color)
-        if(initialPosition < 52)
-            returnOpponent(color, newPosition - 1)
-        if(newPosition == 57){  // remove atributos que nao serao mais necessarios
-            element.currentTarget.removeAttribute("data-position");
-            element.currentTarget.removeAttribute("data-casemap");
-        }
-    }
-    if(number != 6)
-        nextCurrentPlayer(color)
-    inactiveButtons(".button")
-    activeButtons("#draw")
+export {
+    newListPlayers,
+    checkCurrentPlayer,
+    setCurrentPlayer,
+    nextCurrentPlayer,
+    checkButtonRelease
 }
-
-function checkCurrentPlayer() {
-    const element = document.querySelector('.current_player')
-    return element? element.dataset.color : null
-}
-
-function nextCurrentPlayer (currentPlayer) {
-    const listPlayers = newListPlayers()
-    const currentIndice = listPlayers.indexOf(currentPlayer)
-    const nextPlayer = (currentIndice + 1) < listPlayers.length ? (currentIndice + 1) : 0
-    setCurrentPlayer(nextPlayer, listPlayers)
-}
-
-function setCurrentPlayer (indice, listPlayers) {
-    document.querySelectorAll('.player_button').forEach(element => {
-        element.classList.remove("current_player")
-    })
-    document.querySelectorAll('.button').forEach(element => {
-        element.classList.remove("indexTop")
-        console.log(element)
-    })
-    document.querySelector(`.player_button[data-color="${listPlayers[indice]}"]`).classList.add("current_player")
-    document.querySelector(`.button[data-color="${listPlayers[indice]}"]`).classList.add("indexTop")
-    console.log(document.querySelector(`.button[data-color="${listPlayers[indice]}"]`))
-}
-
-function checkButtonRelease (number) {
-    const currentPlayer = checkCurrentPlayer()
-    const buttonsInBoard = [...document.querySelectorAll(`[data-position][data-color="${currentPlayer}"]`)].filter(element => parseInt(element.dataset.position) > 0 && parseInt(element.dataset.position) + number <= 57)
-    if(number == 6){
-        document.querySelectorAll(`[data-position="0"][data-color="${currentPlayer}"]`).forEach(element => activeButtons(`#${element.id}`))
-        inactiveButtons("#draw")
-    }
-    if(buttonsInBoard.length > 0){
-        buttonsInBoard.forEach(element => activeButtons(`#${element.id}`))
-        inactiveButtons("#draw")
-    }else{
-        nextCurrentPlayer(currentPlayer)
-    }
-}
-
-export { newListPlayers, checkCurrentPlayer, setCurrentPlayer, nextCurrentPlayer, checkButtonRelease }
