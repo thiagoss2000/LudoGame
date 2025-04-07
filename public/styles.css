@@ -3,13 +3,17 @@
     padding: 0 !important;
 }
 
-body {
-    width: 100%;
+html, body {
     height: 100%;
-    background-color: aqua;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: rgba(85, 85, 100, 0.767);
     display: flex;
-    align-items: center;  
-    justify-content: center;  
+    align-items: center;
+    justify-content: center;
 }
 
 #background_img {
@@ -21,8 +25,8 @@ body {
     height: 800px;
     position: relative;
     display: flex;
-    align-items: center;  
-    justify-content: center; 
+    align-items: center;
+    justify-content: center;
     background-color: white;
 }
 
@@ -165,4 +169,20 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+#instructions {
+    width: 80%;
+    height: max-content;
+
+    background-color: rgba(214, 236, 255, 0.822);
+    position: absolute;
+    display: flex;
+    align-items: center;
+
+    z-index: 10;
+    cursor: pointer;
+}
+#instructions * {
+    margin-left: 10px !important;
 }

@@ -16,7 +16,7 @@ git clone git@github.com:thiagoss2000/LudoGame.git
 Download the files and extract them into the destination folder
 
 ## 🔧 Installing modules  
-Inside the destination folder, run:  
+Inside the LudoGame folder, run:
 npm install
 
 ### Execution  
