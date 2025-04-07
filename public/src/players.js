@@ -15,7 +15,7 @@ const START_POSITION = 1
 const FINAL_POSITION = 57
 
 // Última posição do tabuleiro antes de entrar na trilha final
-const MAX_BOARD_POSITION = 52
+const MAX_BOARD_POSITION = 51
 
 // Ordem lógica de iteração dos jogadores
 const PLAYER_ORDER = ["green", "red", "blue", "yelow"]

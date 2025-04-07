@@ -86,6 +86,18 @@ const createButtons = (colors) =>
             `<div id="${color[0] + id}" class="button button_${color}" data-color="${color}" data-position="0" data-casemap="-1"></div>`
         ).join("")
     ).join("")
+    
+// --- Funções auxiliares de manipulação de DOM ---
+// Todas possuem efeito colateral
+
+// Retorna todos os elementos como array
+const queryAll = (selector) => [...document.querySelectorAll(selector)]
+
+// Retorna o primeiro elemento que bate com o seletor
+const query = (selector) => document.querySelector(selector)
+
+// Define um atributo em um elemento
+const setAttr = (el, attr, val) => el.setAttribute(attr, val)
 
 // --------------------
 // EFEITOS COLATERAIS (DOM)
@@ -96,17 +108,16 @@ const domSetStylePosition = (el, top, left) => {
     el.style.left = `${50 - top}%`
     el.style.top = `${50 - left}%`
 }
-
 // Define o atributo de casa atual no tabuleiro
 const domSetCaseMap = (el, value) => el.setAttribute("data-caseMap", `${value}`)
 
 // Inicializa eventos de clique nos botões
 const domInitButtons = (selector, handler) =>
-    document.querySelectorAll(selector).forEach(el => el.addEventListener("click", handler))
+    queryAll(selector).forEach(el => el.addEventListener("click", handler))
 
 // Adiciona ou remove a classe `clickable` para ativar/desativar peças
 const domModifyButtons = (selector, action) =>
-    document.querySelectorAll(selector).forEach(el => el.classList[action]("clickable"))
+    queryAll(selector).forEach(el => el.classList[action]("clickable"))
 
 const activeButtons = (selector) => domModifyButtons(selector, "add")
 const inactiveButtons = (selector) => domModifyButtons(selector, "remove")
@@ -114,7 +125,7 @@ const inactiveButtons = (selector) => domModifyButtons(selector, "remove")
 // Posiciona visualmente uma peça no tabuleiro com base na posição e cor
 const domSetPiecePosition = (position, id, color) => {
     const [top, left, pos] = calcPieceCoords(position, color, sizeButton)
-    const button = document.querySelector(`#${id}`)
+    const button = query(`#${id}`)
     domSetStylePosition(button, top, left)
     domSetCaseMap(button, pos)
 }
@@ -124,7 +135,7 @@ const domPlaceInitialPieces = (colors, size, ids = [1, 2, 3, 4]) => {
     colors.forEach(color => {
         ids.forEach(id => {
             const [x, y] = getInitialCoords(color, id, size)
-            const button = document.querySelector(`#${color[0] + id}`)
+            const button = query(`#${color[0] + id}`)
             domSetStylePosition(button, y, x)
         })
     })
@@ -135,20 +146,19 @@ const domReturnOpponent = (player, position) => {
     const opponents = ["green", "red", "blue", "yelow"].filter(p => p !== player)
     const caseMap = calcValueColor(position, player)
     const protectedCase = [8, 21, 34, 47]   // Casas de partida são protegidas, não há retorno de oponentes
-
+    
     if (protectedCase.includes(caseMap)) return
 
     opponents.forEach(color => {
-        document.querySelectorAll(`.button[data-color="${color}"]`).forEach(button => {
+        queryAll(`.button[data-color="${color}"]`).forEach(button => {
             const opponentPosition = parseInt(button.dataset.position)
             const opponentCaseMap = parseInt(button.dataset.casemap)
 
             if (
-                opponentPosition <= 50 &&
                 opponentCaseMap === caseMap &&
                 opponentPosition > 1
             ) {
-                button.dataset.position = "0"
+                setAttr(button, "data-position", "0")
                 domPlaceInitialPieces([color], sizeButton, [parseInt(button.id[1])])
             }
         })

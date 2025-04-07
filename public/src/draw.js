@@ -2,44 +2,55 @@ import {
     checkButtonRelease,
     checkCurrentPlayer,
     newListPlayers,
-    nextCurrentPlayer,
     setCurrentPlayer
 } from "./players.js"
 
-// Sorteia um número aleatório entre 1 e max (inclusive)
-// Função pura
+// --- Funções auxiliares de manipulação de DOM ---
+// Todas possuem efeito colateral
+
+// Define HTML interno de um seletor
+const setHTML = (selector, html) => document.querySelector(selector).innerHTML = html
+
+// Retorna o primeiro elemento que bate com o seletor
+const query = (selector) => document.querySelector(selector)
+
+// Define um atributo em um elemento
+const setAttr = (el, attr, val) => el.setAttribute(attr, val)
+
+// Sorteia um número aleatório entre 1 e max
+// Função impura
 const randomDraw = (max) => Math.floor(Math.random() * max) + 1
 
 // Inicializa a área gráfica do dado (DOM)
 // Efeito colateral: manipula diretamente o DOM
 const initDrawer = (fn) => {
-    document.getElementById("draw").innerHTML = [1, 2, 3].map(i => `
+    setHTML("#draw", [1, 2, 3].map(i => `
         <div id="line${i}" class="line">
             <div id="drawNumber${i * 2 - 1}" class="number"></div>
             <div id="drawNumber${i * 2}" class="number"></div>
         </div>
-    `).join("")
+    `).join(""))
     return fn
 }
 
 // Altera visualmente a cor dos pontos do dado
 // Efeito colateral: modifica estilo no DOM
 const setDotColor = (...ids) => ids.forEach(id => {
-    const el = document.getElementById(id)
+    const el = query(`#${id}`)
     if (el) el.style.backgroundColor = "antiquewhite"
 })
 
 // Remove elementos do DOM por ID
 // Efeito colateral
 const removeElement = (...ids) => ids.forEach(id => {
-    const el = document.getElementById(id)
+    const el = query(`#${id}`)
     if (el) el.remove()
 })
 
 // Renderiza os pontos no dado com base no número sorteado
 // Efeito colateral: atualiza DOM dinamicamente
 const drawNumbers = (number) => {
-    document.getElementById("draw").dataset.number = `${number}`
+    setAttr(query("#draw"), "data-number", `${number}`)
 
     const drawMap = {
         1: () => removeElement("drawNumber3", "line1", "line3"),
@@ -55,7 +66,7 @@ const drawNumbers = (number) => {
 
 // Evento de clique no botão de sorteio do dado
 // Efeito colateral: manipula DOM e controla fluxo de turno
-document.getElementById("draw").onclick = ({ currentTarget }) => {
+query("#draw").onclick = ({ currentTarget }) => {
     if (!currentTarget.classList.contains("clickable")) return
 
     const players = newListPlayers()
